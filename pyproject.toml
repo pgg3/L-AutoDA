@@ -1,0 +1,13 @@
+[project]
+name = "lautoda"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "evotoolkit>=1.0.0",
+    "torch>=2.0",
+    "torchvision",
+    "foolbox",
+    "eagerpy",
+    "robustbench @ git+https://github.com/RobustBench/robustbench.git",
+    "numpy",
+]

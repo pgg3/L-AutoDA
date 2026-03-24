@@ -6,39 +6,35 @@ L-AutoDA uses [evotoolkit](https://github.com/pgg3/evotoolkit) to automatically 
 
 ## Installation
 
-We suggest Python >= 3.11 to avoid compatibility issues with Robustbench.
+Requires Python >= 3.11. Install [uv](https://docs.astral.sh/uv/) if not already available:
 
 ```shell
-conda create -n lautoda python=3.11
-conda activate lautoda
+pip install uv
 ```
 
-Install PyTorch (adjust cuda version as needed):
+Install all dependencies:
 
 ```shell
-conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+uv sync
 ```
 
-Install remaining dependencies:
-
-```shell
-pip install evotoolkit
-pip install git+https://github.com/RobustBench/robustbench.git
-pip install foolbox eagerpy
-```
+> **Note:** PyTorch is installed as a CPU build by default. For GPU support, install manually after `uv sync`:
+> ```shell
+> uv run pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+> ```
 
 ## Usage
 
 ### Run standalone attacks (no LLM)
 
 ```shell
-python run_attack.py --dataset cifar10 --model Standard --atk_type L2 --atk_budget 1000
+uv run python run_attack.py --dataset cifar10 --model Standard --atk_type L2 --atk_budget 1000
 ```
 
 ### Run EvoEngineer to discover attack heuristics
 
 ```shell
-python run.py \
+uv run python run.py \
   --api_url https://api.openai.com/v1/chat/completions \
   --api_key YOUR_API_KEY \
   --llm_model gpt-3.5-turbo \
