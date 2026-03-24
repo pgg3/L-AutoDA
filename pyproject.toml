@@ -10,13 +10,14 @@ dependencies = [
     "eagerpy",
     "robustbench @ git+https://github.com/RobustBench/robustbench.git",
     "numpy",
+    "python-dotenv",
 ]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }
 torchvision = { index = "pytorch-cu128" }
 
-[[tool.uv.indexes]]
+[[tool.uv.index]]
 name = "pytorch-cu128"
 url = "https://download.pytorch.org/whl/cu128"
 explicit = true

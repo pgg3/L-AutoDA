@@ -1,6 +1,7 @@
 import os
 import argparse
 import torch
+from dotenv import load_dotenv
 from robustbench.utils import load_model
 
 from core.data import get_data_by_id
@@ -16,6 +17,8 @@ MODEL_PATH = os.path.join(ABS_PATH, "models")
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     parser = argparse.ArgumentParser(description="Run EvoEngineer to discover adversarial attack heuristics.")
     parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "imagenet"])
     parser.add_argument("--batch_size", type=int, default=8)
@@ -23,9 +26,9 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default="Standard")
     parser.add_argument("--use_cuda", type=bool, default=True)
     parser.add_argument("--atk_step", type=int, default=300)
-    parser.add_argument("--api_url", type=str, required=True, help="LLM API endpoint URL")
-    parser.add_argument("--api_key", type=str, required=True, help="LLM API key")
-    parser.add_argument("--llm_model", type=str, default="gpt-3.5-turbo")
+    parser.add_argument("--api_url", type=str, default=None, help="LLM API endpoint URL (or set API_URL in .env)")
+    parser.add_argument("--api_key", type=str, default=None, help="LLM API key (or set API_KEY in .env)")
+    parser.add_argument("--llm_model", type=str, default=None, help="LLM model name (or set MODEL in .env, default: gpt-3.5-turbo)")
     parser.add_argument("--pop_size", type=int, default=5)
     parser.add_argument("--max_generations", type=int, default=10)
     parser.add_argument("--num_samplers", type=int, default=4)
@@ -33,6 +36,11 @@ if __name__ == "__main__":
     parser.add_argument("--output_path", type=str, default="./results")
 
     args = parser.parse_args()
+
+    api_url = args.api_url or os.environ["API_URL"]
+    api_key = args.api_key or os.environ["API_KEY"]
+    llm_model = args.llm_model or os.environ.get("MODEL", "gpt-3.5-turbo")
+
     use_cuda = args.use_cuda and torch.cuda.is_available()
 
     # Load dataset and model
@@ -54,7 +62,7 @@ if __name__ == "__main__":
     # Build evotoolkit components
     task = AdversarialAttackTask(test_loader, use_model, args.atk_step)
     interface = EvoEngineerPythonInterface(task)
-    llm = HttpsApi(api_url=args.api_url, key=args.api_key, model=args.llm_model)
+    llm = HttpsApi(api_url=api_url, key=api_key, model=llm_model)
 
     algo = EvoEngineer(
         interface=interface,
