@@ -12,16 +12,11 @@ Requires Python >= 3.11. Install [uv](https://docs.astral.sh/uv/) if not already
 pip install uv
 ```
 
-Install all dependencies:
+Install all dependencies (PyTorch cu128 is resolved automatically):
 
 ```shell
 uv sync
 ```
-
-> **Note:** PyTorch is installed as a CPU build by default. For GPU support, install manually after `uv sync`:
-> ```shell
-> uv run pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-> ```
 
 ## Usage
 
