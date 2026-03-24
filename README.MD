@@ -1,6 +1,6 @@
 # L-AutoDA
 
-L-AutoDA uses [evotoolkit](https://github.com/pgg3/evotoolkit) to automatically evolve decision-based adversarial attack algorithms via LLM-driven Evolution of Heuristics (EoH).
+L-AutoDA uses [evotoolkit](https://github.com/pgg3/evotoolkit) to automatically evolve decision-based adversarial attack algorithms via LLM-driven [EvoEngineer](https://github.com/pgg3/evotoolkit).
 
 > The original standalone implementation is preserved on the [`v1`](../../tree/v1) branch.
 
@@ -35,10 +35,10 @@ pip install foolbox eagerpy
 python run_attack.py --dataset cifar10 --model Standard --atk_type L2 --atk_budget 1000
 ```
 
-### Run EoH to discover attack heuristics
+### Run EvoEngineer to discover attack heuristics
 
 ```shell
-python run_eoh.py \
+python run.py \
   --api_url https://api.openai.com/v1/chat/completions \
   --api_key YOUR_API_KEY \
   --llm_model gpt-3.5-turbo \

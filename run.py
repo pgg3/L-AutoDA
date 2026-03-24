@@ -6,8 +6,8 @@ from robustbench.utils import load_model
 from core.data import get_data_by_id
 from core.search_utils import AdversarialAttackTask
 
-from evotoolkit import EoH
-from evotoolkit.task.python_task import EoHPythonInterface
+from evotoolkit import EvoEngineer
+from evotoolkit.task.python_task import EvoEngineerPythonInterface
 from evotoolkit.tools import HttpsApi
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -16,7 +16,7 @@ MODEL_PATH = os.path.join(ABS_PATH, "models")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run EoH to discover adversarial attack heuristics.")
+    parser = argparse.ArgumentParser(description="Run EvoEngineer to discover adversarial attack heuristics.")
     parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "imagenet"])
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--atk_type", type=str, default="L2", choices=["L2", "Linf"])
@@ -28,6 +28,8 @@ if __name__ == "__main__":
     parser.add_argument("--llm_model", type=str, default="gpt-3.5-turbo")
     parser.add_argument("--pop_size", type=int, default=5)
     parser.add_argument("--max_generations", type=int, default=10)
+    parser.add_argument("--num_samplers", type=int, default=4)
+    parser.add_argument("--num_evaluators", type=int, default=4)
     parser.add_argument("--output_path", type=str, default="./results")
 
     args = parser.parse_args()
@@ -51,18 +53,20 @@ if __name__ == "__main__":
 
     # Build evotoolkit components
     task = AdversarialAttackTask(test_loader, use_model, args.atk_step)
-    interface = EoHPythonInterface(task)
+    interface = EvoEngineerPythonInterface(task)
     llm = HttpsApi(api_url=args.api_url, key=args.api_key, model=args.llm_model)
 
-    eoh = EoH(
+    algo = EvoEngineer(
         interface=interface,
         running_llm=llm,
         output_path=args.output_path,
         max_generations=args.max_generations,
         pop_size=args.pop_size,
+        num_samplers=args.num_samplers,
+        num_evaluators=args.num_evaluators,
     )
 
-    best = eoh.run()
+    best = algo.run()
     if best and best.evaluation_res:
         print(f"Best L2 distance: {-best.evaluation_res.score:.5f}")
         print(f"Best code:\n{best.sol_string}")
