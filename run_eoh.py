@@ -1,75 +1,68 @@
 import os
-import torch
 import argparse
-from eoh import eoh
-from eoh.utils.getParas import Paras
-from core.search_utils.problem import Evaluation
-from core.data import get_data_by_id
+import torch
 from robustbench.utils import load_model
 
+from core.data import get_data_by_id
+from core.search_utils import AdversarialAttackTask
+
+from evotoolkit import EoH
+from evotoolkit.task.python_task import EoHPythonInterface
+from evotoolkit.tools import HttpsApi
+
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(ABS_PATH, 'datasets')
-MODEL_PATH = os.path.join(ABS_PATH, 'models')
-DATA_CFG_PATH = os.path.join(ABS_PATH, 'configs', 'data_cfgs')
+DATA_PATH = os.path.join(ABS_PATH, "datasets")
+MODEL_PATH = os.path.join(ABS_PATH, "models")
 
-if __name__ == '__main__':
-    # Create an argument parser
-    parser = argparse.ArgumentParser(description="Run the EOH algorithm with specified parameters.")
-    parser.add_argument('--dataset', type=str, default="cifar10", choices=["cifar10", "imagenet"])
-    parser.add_argument('--batch_size', type=int, default=8, help='Batch size for training')
-    parser.add_argument('--atk_type', type=str, default="L2", choices=["L2", "Linf"])
-    parser.add_argument('--model', type=str, default='Standard', help='Model architecture')
-    parser.add_argument('--use_cuda', type=bool, default=True, help='Whether or not to use GPU')
-    parser.add_argument('--atk_step', type=int, default=300, help='Number of attack steps')
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run EoH to discover adversarial attack heuristics.")
+    parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "imagenet"])
+    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--atk_type", type=str, default="L2", choices=["L2", "Linf"])
+    parser.add_argument("--model", type=str, default="Standard")
+    parser.add_argument("--use_cuda", type=bool, default=True)
+    parser.add_argument("--atk_step", type=int, default=300)
+    parser.add_argument("--api_url", type=str, required=True, help="LLM API endpoint URL")
+    parser.add_argument("--api_key", type=str, required=True, help="LLM API key")
+    parser.add_argument("--llm_model", type=str, default="gpt-3.5-turbo")
+    parser.add_argument("--pop_size", type=int, default=5)
+    parser.add_argument("--max_generations", type=int, default=10)
+    parser.add_argument("--output_path", type=str, default="./results")
 
     args = parser.parse_args()
-    dataset = args.dataset
-    batch_size = args.batch_size
-    atk_type = args.atk_type
-    atk_step = args.atk_step
-    use_cuda = args.use_cuda
-    use_cuda = use_cuda and torch.cuda.is_available()
+    use_cuda = args.use_cuda and torch.cuda.is_available()
 
-
-    test_set = get_data_by_id(dataset, use_train_data=False, data_path=os.path.join(DATA_PATH, dataset))
+    # Load dataset and model
+    test_set = get_data_by_id(
+        args.dataset, use_train_data=False, data_path=os.path.join(DATA_PATH, args.dataset)
+    )
     test_loader = torch.utils.data.DataLoader(
-        test_set, batch_size=batch_size, shuffle=False, pin_memory=True
+        test_set, batch_size=args.batch_size, shuffle=False, pin_memory=True
     )
     use_model = load_model(
         model_name=args.model,
         model_dir=MODEL_PATH,
-        dataset=dataset,
-        threat_model=atk_type
+        dataset=args.dataset,
+        threat_model=args.atk_type,
     )
     if use_cuda:
         use_model.cuda()
 
+    # Build evotoolkit components
+    task = AdversarialAttackTask(test_loader, use_model, args.atk_step)
+    interface = EoHPythonInterface(task)
+    llm = HttpsApi(api_url=args.api_url, key=args.api_key, model=args.llm_model)
 
-    # Parameter initilization #
-    paras = Paras()
-
-
-    # Set your local problem
-    problem_local = Evaluation(test_loader, use_model, atk_step)
-
-    # Set parameters #
-    paras.set_paras(
-        method = "eoh",    # ['ael','eoh']
-        problem = problem_local, # Set local problem, else use default problems
-        llm_api_endpoint = "XXX", # set your LLM endpoint
-        llm_api_key = "XXX",   # set your key
-        llm_model = "gpt-3.5-turbo",
-        ec_pop_size = 5, # number of samples in each population
-        ec_n_pop = 10,  # number of populations
-        exp_n_proc = 1,  # multi-core parallel
-        exp_debug_mode = False,
-        eva_numba_decorator = False,
-        eva_timeout = 300
+    eoh = EoH(
+        interface=interface,
+        running_llm=llm,
+        output_path=args.output_path,
+        max_generations=args.max_generations,
+        pop_size=args.pop_size,
     )
 
-    # initilization
-    evolution = eoh.EVOL(paras)
-
-    # run
-    evolution.run()
+    best = eoh.run()
+    if best and best.evaluation_res:
+        print(f"Best L2 distance: {-best.evaluation_res.score:.5f}")
+        print(f"Best code:\n{best.sol_string}")

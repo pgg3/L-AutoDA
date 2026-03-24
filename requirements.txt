@@ -1,0 +1,7 @@
+evotoolkit>=1.0.0
+torch>=2.0
+torchvision
+foolbox
+eagerpy
+robustbench @ git+https://github.com/RobustBench/robustbench.git
+numpy

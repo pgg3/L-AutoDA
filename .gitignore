@@ -1,2 +1,5 @@
 /datasets
 /models
+/results
+__pycache__/
+*.pyc
