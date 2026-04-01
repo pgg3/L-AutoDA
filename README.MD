@@ -1,6 +1,8 @@
 # L-AutoDA
 
-L-AutoDA uses [evotoolkit](https://github.com/pgg3/evotoolkit) to automatically evolve decision-based adversarial attack algorithms via LLM-driven [EvoEngineer](https://github.com/pgg3/evotoolkit).
+**L-AutoDA: Large Language Models for Automatically Evolving Decision-based Adversarial Attacks**
+
+This is the official code repository for the GECCO '24 Companion paper. L-AutoDA uses [EvoToolkit](https://github.com/pgg3/evotoolkit) to automatically evolve decision-based adversarial attack algorithms via LLM-driven evolutionary search.
 
 > The original standalone implementation is preserved on the [`v1`](../../tree/v1) branch.
 
@@ -40,25 +42,33 @@ uv run python run.py \
   --output_path ./results
 ```
 
-Results are saved under `./results/` (evotoolkit format: `run_state.json`, `history/`, `summary/`).
-
-## Reference
-
-If you find this repo useful, please consider citing our paper:
+You can also configure the LLM endpoint via a `.env` file:
 
 ```
-@inproceedings{guo:2024:lautoda,
-  author       = {Ping Guo and
-                  Fei Liu and
-                  Xi Lin and
-                  Qingchuan Zhao and
-                  Qingfu Zhang},
-  title        = {L-AutoDA: Large Language Models for Automatically Evolving Decision-based
-                  Adversarial Attacks},
-  booktitle    = {Proceedings of the Genetic and Evolutionary Computation Conference
-                  Companion, {GECCO}},
-  pages        = {1846--1854},
-  publisher    = {{ACM}},
-  year         = {2024}
+API_URL=https://api.openai.com/v1/chat/completions
+API_KEY=your-api-key
+MODEL=gpt-3.5-turbo
+```
+
+## Citation
+
+If you find this work useful, please cite our paper:
+
+```bibtex
+@inproceedings{ping2024lautoda,
+  author    = {Guo, Ping and Liu, Fei and Lin, Xi and Zhao, Qingchuan and Zhang, Qingfu},
+  title     = {L-AutoDA: Large Language Models for Automatically Evolving Decision-based Adversarial Attacks},
+  year      = {2024},
+  isbn      = {9798400704956},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3638530.3664121},
+  doi       = {10.1145/3638530.3664121},
+  booktitle = {Proceedings of the Genetic and Evolutionary Computation Conference Companion},
+  pages     = {1846--1854},
+  numpages  = {9},
+  keywords  = {large language models, adversarial attacks, automated algorithm design, evolutionary algorithms},
+  location  = {Melbourne, VIC, Australia},
+  series    = {GECCO '24 Companion}
 }
 ```
